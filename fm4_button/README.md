@@ -4,7 +4,7 @@ This service is designed to run on a Raspberry Pi and fetches the current song p
 
 ## Service Details
 
-- **Service Name:** `fm4_button`
+- **Service Name:** `fm4`
 - **Description:** This service continuously runs and fetches the current song from the FM4 radio station. It also supports GPIO button inputs for resetting the program state.
 
 ## Service Setup
@@ -14,7 +14,7 @@ This service is designed to run on a Raspberry Pi and fetches the current song p
 1. **Create the service file:**
 
    ```bash
-   sudo nano /etc/systemd/system/fm4_button.service
+   sudo nano /etc/systemd/system/fm4.service
    ```
 
 2. **Add the following content:**
@@ -45,13 +45,13 @@ This service is designed to run on a Raspberry Pi and fetches the current song p
 4. **Start the service:**
 
    ```bash
-   sudo systemctl start fm4_button
+   sudo systemctl start fm4
    ```
 
 5. **Enable the service to start on boot:**
 
    ```bash
-   sudo systemctl enable fm4_button
+   sudo systemctl enable fm4
    ```
 
 ### Managing the Service
@@ -59,19 +59,19 @@ This service is designed to run on a Raspberry Pi and fetches the current song p
 - **Restart the service:**
 
   ```bash
-  sudo systemctl restart fm4_button
+  sudo systemctl restart fm4
   ```
 
 - **Stop the service:**
 
   ```bash
-  sudo systemctl stop fm4_button
+  sudo systemctl stop fm4
   ```
 
 - **Disable the service:**
 
   ```bash
-  sudo systemctl disable fm4_button
+  sudo systemctl disable fm4
   ```
 
 ### Viewing Logs
@@ -81,7 +81,7 @@ By default, logging to standard output and error is disabled (redirected to `/de
 - **View the logs:**
 
   ```bash
-  journalctl -u fm4_button
+  journalctl -u fm4
   ```
 
 ### Clearing Logs
@@ -127,4 +127,4 @@ pip3 install requests beautifulsoup4 rpi_lcd
 - **Dependencies:** Make sure you have the necessary libraries (`requests`, `beautifulsoup4`, `RPi.GPIO`, `rpi_lcd`) installed on your Raspberry Pi.
 - **Service Execution:** This service script is designed to run continuously and handle button presses to reset its state.
 
-This README provides all the necessary details to start, manage, and understand the functionality of the `fm4_button` service.
+This README provides all the necessary details to start, manage, and understand the functionality of the `fm4` service.
