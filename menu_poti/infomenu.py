@@ -2,7 +2,6 @@ import requests
 import Adafruit_ADS1x15
 import datetime
 
-from systemd import journal
 from rpi_lcd import LCD
 from time import sleep
 import RPi.GPIO as GPIO # Import Raspberry Pi GPIO library
@@ -51,29 +50,29 @@ def execute_option(channel):
     reset_display()
     option = get_selected_option()
     if option == "fm4":
-        journal.send("Getting FM4 Song")
+        print("Getting FM4 Song")
         request = WebSongInfo("fm4")
 
     elif option == "oe1liveradio":
-        journal.send("Playing Ö1 Song")
+        print("Playing Ö1 Song")
         request = WebSongInfo("oe1liveradio")
 
     elif option == "temperature_linz":
-        journal.send("Displaying temperature for Linz")
+        print("Displaying temperature for Linz")
         request = WebWeatherInfo("48.3064", "14.2861")
 
     elif option == "temperature_bremen":
-        journal.send("Displaying temperature for Bremen")
+        print("Displaying temperature for Bremen")
         request = WebWeatherInfo("53.075", "8.808")
 
     elif option == "temperature_lissabon":
-        journal.send("Displaying temperature for Lissabon")
+        print("Displaying temperature for Lissabon")
         request = WebWeatherInfo("38.717", "-9.133")
 
     elif option == "garden_moon_info":
         current_date = datetime.datetime.now()
         formatted_date = current_date.strftime("%B %d")
-        journal.send("Garten Mondkalendar fuer " + formatted_date)
+        print("Garten Mondkalendar fuer " + formatted_date)
         request = GardenMoonInfo(formatted_date)
 
 
@@ -83,7 +82,7 @@ def execute_option(channel):
         text = request.parse_content(content)
     except requests.RequestException as e:
         text = "Error fetching text"
-        journal.send(f"Error: {e}")
+        print(f"Error: {e}")
 
     print(text)
     lcd.text(text, 1)
@@ -116,7 +115,7 @@ lcd = LCD()
 
 # Reset_display()
 setup_gpio()
-journal.send("Initializing done")
+print("Initializing done")
 
 while True:
     if pause_flag:

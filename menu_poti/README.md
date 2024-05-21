@@ -1,10 +1,40 @@
- sudo systemctl stop infomenu
+
+```bash
+sudo systemctl stop infomenu
+sudo systemctl start infomenu
+sudo systemctl enable infomenu
+
+journalctl -u infomenu| tail -n 500
+```
 
 
-  sudo systemctl start infomenu
+```ini
+[Unit]
+Description=Kitchen Info Menu Service
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/python3.9 /home/janikmoller/Documents/infomenu.py
+Restart=always
+RestartSec=3
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=infomenu
+WorkingDirectory=/home/janikmoller/Documents/
+Environment= "PYTHONUNBUFFERED=TRUE"
 
 
- sudo systemctl enable infomenu
+[Install]
+WantedBy=multi-user.target
+```
 
 
- journalctl -u infomenu| tail -n 500
+Ensure you have the required Python modules installed:
+
+```bash
+pip3 install requests beautifulsoup4 rpi_lcd
+```
+
+## Additional Notes
+
+tbd wiring info
