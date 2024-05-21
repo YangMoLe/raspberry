@@ -1,21 +1,27 @@
-import threading
 import requests
-import sys
 import Adafruit_ADS1x15
+import datetime
 
-
-from bs4 import BeautifulSoup
+from systemd import journal
 from rpi_lcd import LCD
 from time import sleep
 import RPi.GPIO as GPIO # Import Raspberry Pi GPIO library
 
-from Webinfo import WebSongInfo
+from Webinfo import WebSongInfo, WebWeatherInfo
 
+from GardenMoonInfo import GardenMoonInfo
 # GPIO pin numbers
 BUTTON_PIN = 11
 
 # Menu options
-OPTIONS = {'fm4': 'Current FM4 Song', 'oe1liveradio': 'Current OE1 Song', "temperature": "Temperatur in Linz"}
+OPTIONS = {
+    'fm4': 'Current FM4 Song',
+    'oe1liveradio': 'Current OE1 Song',
+    "temperature_linz": "Temperatur in Linz",
+    "temperature_bremen": "Temperatur in Bremen",
+    "temperature_lissabon": "Temperatur in Lissabon",
+    "garden_moon_info": "Garten Mondkalender"
+}
 
 # Global flag to control the main loop execution
 pause_flag = False
@@ -29,12 +35,12 @@ def read_adc(channel):
 def get_selected_option():
     adc_value = read_adc(0)
     max_value = 26404
-    if adc_value < max_value/3:
-        return "fm4"
-    elif adc_value < 2*(max_value/3):
-        return "oe1liveradio"
-    else:
-        return "temperature"
+    thresholds = [max_value / 5 * i for i in range(1, 5)]
+    stations = list(OPTIONS.keys())
+    for i, threshold in enumerate(thresholds):
+        if adc_value < threshold:
+            return stations[i]
+    return stations[-1]
 
 
 # Function to execute for each option
@@ -45,31 +51,44 @@ def execute_option(channel):
     reset_display()
     option = get_selected_option()
     if option == "fm4":
-        print("Getting FM4 Song")
-         # Create an instance of RequestSongName with the radio name "fm4"
+        journal.send("Getting FM4 Song")
         request = WebSongInfo("fm4")
+
     elif option == "oe1liveradio":
-        print("Playing Ö1 Song")
+        journal.send("Playing Ö1 Song")
         request = WebSongInfo("oe1liveradio")
-        # Your Ö1 song playing code here
-    elif option == "temperature":
-        print("Displaying temperature in Linz")
-        # Your temperature display code here
-        #request = RequestTemperature("linz")
-        request = WebSongInfo("linz")
+
+    elif option == "temperature_linz":
+        journal.send("Displaying temperature for Linz")
+        request = WebWeatherInfo("48.3064", "14.2861")
+
+    elif option == "temperature_bremen":
+        journal.send("Displaying temperature for Bremen")
+        request = WebWeatherInfo("53.075", "8.808")
+
+    elif option == "temperature_lissabon":
+        journal.send("Displaying temperature for Lissabon")
+        request = WebWeatherInfo("38.717", "-9.133")
+
+    elif option == "garden_moon_info":
+        current_date = datetime.datetime.now()
+        formatted_date = current_date.strftime("%B %d")
+        journal.send("Garten Mondkalendar fuer " + formatted_date)
+        request = GardenMoonInfo(formatted_date)
+
 
     lcd.text("Loading...", 1)
     try:
         content = request.fetch_content()
-        song = request.parse_content(content)
+        text = request.parse_content(content)
     except requests.RequestException as e:
-        song = "Error fetching song"
-        print(f"Error: {e}")
+        text = "Error fetching text"
+        journal.send(f"Error: {e}")
 
-    print(song)
-    lcd.text(song, 1)
+    print(text)
+    lcd.text(text, 1)
     sleep(5)
-    # setup_gpio()
+    setup_gpio()
     reset_display()
     pause_flag = False
 
@@ -97,14 +116,13 @@ lcd = LCD()
 
 # Reset_display()
 setup_gpio()
-print("Initializing done")
+journal.send("Initializing done")
 
 while True:
     if pause_flag:
         sleep(0.1)
     else:
     # Display menu based on potentiometer value
-        lcd.text("Menu: ", 1)
-        lcd.text(OPTIONS.get(get_selected_option()), 2)
+        option = "Menu: " + OPTIONS.get(get_selected_option())
+        lcd.text(option, 1)
         sleep(1)
-
