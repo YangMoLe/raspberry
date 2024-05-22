@@ -3,20 +3,24 @@ import Adafruit_ADS1x15
 import datetime
 
 from rpi_lcd import LCD
-from time import sleep
+from time import sleep, time
 import RPi.GPIO as GPIO # Import Raspberry Pi GPIO library
 
 from Webinfo import WebSongInfo, WebWeatherInfo
 
 from GardenMoonInfo import GardenMoonInfo
+from HafasOebb import OebbHafasClient
+
 # GPIO pin numbers
 BUTTON_PIN = 11
 
 # Menu options
 OPTIONS = {
-    'fm4': 'Current FM4 Song',
-    'oe1liveradio': 'Current OE1 Song',
+    'fm4': 'FM4 Song',
+    'oe1liveradio': 'OE1 Song',
+    "train": "Nächster zuch",
     "temperature_linz": "Temperatur in Linz",
+    "temperature_vienna": "Temperatur in Wien",
     "temperature_bremen": "Temperatur in Bremen",
     "temperature_lissabon": "Temperatur in Lissabon",
     "garden_moon_info": "Garten Mondkalender"
@@ -24,6 +28,32 @@ OPTIONS = {
 
 # Global flag to control the main loop execution
 pause_flag = False
+stay_duration = 5
+
+# helper
+
+def display_scrolling_text(txt, seconds: int = 5):
+    txt = txt.strip() + '. '
+    # Calculate the number of positions the text needs to scroll
+    scroll_length = len(txt) if len(txt) > 32 else 32
+    # If the text is less than 32 characters, pad it with spaces to make it 32 characters long
+    if len(txt) < 33:
+        txt = txt + (32 - len(txt)) * ' '
+        lcd.text(txt, 1)
+        sleep(seconds)
+        return
+    # Calculate the total number of scrolls needed to show the entire text at least once
+    total_scrolls = max((seconds * 5) + 0.8, scroll_length)
+
+    i = 0
+    while i < total_scrolls + 1:
+        lcd.text(txt[:32], 1)
+        if i == 0:
+            sleep(0.8)
+        sleep(0.2)
+        txt = txt[1:] + txt[0]
+        i += 1
+
 
 # Function to read ADC value
 def read_adc(channel):
@@ -34,7 +64,7 @@ def read_adc(channel):
 def get_selected_option():
     adc_value = read_adc(0)
     max_value = 26404
-    thresholds = [max_value / 5 * i for i in range(1, 5)]
+    thresholds = [max_value / len(OPTIONS) * i for i in range(1, 5)]
     stations = list(OPTIONS.keys())
     for i, threshold in enumerate(thresholds):
         if adc_value < threshold:
@@ -61,6 +91,10 @@ def execute_option(channel):
         print("Displaying temperature for Linz")
         request = WebWeatherInfo("48.3064", "14.2861")
 
+    elif option == "temperature_vienna":
+        print("Displaying temperature for Wien")
+        request = WebWeatherInfo("48.2085", "16.3721")
+
     elif option == "temperature_bremen":
         print("Displaying temperature for Bremen")
         request = WebWeatherInfo("53.075", "8.808")
@@ -75,6 +109,9 @@ def execute_option(channel):
         print("Garten Mondkalendar fuer " + formatted_date)
         request = GardenMoonInfo(formatted_date)
 
+    elif option == "train":
+        print("Nächster Zug")
+        request = OebbHafasClient()
 
     lcd.text("Loading...", 1)
     try:
@@ -85,8 +122,7 @@ def execute_option(channel):
         print(f"Error: {e}")
 
     print(text)
-    lcd.text(text, 1)
-    sleep(5)
+    display_scrolling_text(text, stay_duration)
     setup_gpio()
     reset_display()
     pause_flag = False

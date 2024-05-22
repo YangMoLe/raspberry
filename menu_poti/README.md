@@ -38,3 +38,23 @@ pip3 install requests beautifulsoup4 rpi_lcd
 ## Additional Notes
 
 tbd wiring info
+
+
+
+[Unit]
+Description=Oebb Server
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/node /home/janikmoller/Documents/oebb-server/hello-jafas.py
+Restart=always
+RestartSec=3
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=oebbserver
+WorkingDirectory=/home/janikmoller/Documents/oebb-server
+Environment= "PYTHONUNBUFFERED=TRUE"
+
+
+[Install]
+WantedBy=multi-user.target
