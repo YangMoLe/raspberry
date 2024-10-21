@@ -72,10 +72,40 @@ sudo systemctl enable infomenu
 
 | PIN | Meaning | Connected to |
 | -------- | ------- | ------- |
+| 1 | 3V3 (True) | Plus on circuit |
+| 2 | 5V Power | VDD from ADC |
+| 3 | SDA | SDA (ADC, LCD) |
+| 4  | 5V Power | VCC from LCD |
+| 5 | SCL | SCL (ADC, LCD) |
+| 6 | GND | GND from LCD |
 | 11 | GPIO 17 | Button |
-| February | $80 | |
-| March | $420 | |
+| 34 | GND | Ground from POTI, ADDR from ADC |
 
-### Analog Digital Converter
+### Analog Digital Converter + Poti
+
+```python
+import Adafruit_ADS1x15
+adc = Adafruit_ADS1x15.ADS1115() # Create an ADS1115 ADC (16-bit) instance
+value = adc.read_adc(0, gain=GAIN)
+```
+
+- 16Bit 12C ADC "ADS1115"
+- Potentiometer
+
+The value of the potentiometer is read by the ADCs A0 port. The other two pins from the poti are connected to 3V3 and GND.
 
 ### LCD
+
+```python
+from rpi_lcd import LCD
+lcd = LCD()
+```
+
+- 1602 LCD
+- I2C
+
+Using the I2C its easy to connect to the display.
+
+### Button
+
+If the button is pressed the gpio pin reads a high value

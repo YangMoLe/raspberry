@@ -18,8 +18,8 @@ BUTTON_PIN = 11
 # Menu options
 OPTIONS = {
     'fm4': 'FM4 Song',
-    'oe1liveradio': 'OE1 Song',
-    "train": "Nächster zuch",
+    'oe1liveradio': 'ö1 Song',
+    "train": "Nächster Zug",
     "tagesschau": "Aktuelle Nachrichten",
     "temperature_linz": "Temperatur in Linz",
     "temperature_vienna": "Temperatur in Wien",
@@ -85,7 +85,7 @@ def display_scrolling_text(txt, seconds: int = 5):
         i += 1
 # Function to read ADC value
 def read_adc(channel):
-    value = adc.read_adc(0, gain=GAIN)
+    value = adc.read_adc(channel, gain=GAIN)
     return value
 
 # Function to determine selected option based on potentiometer value
@@ -115,6 +115,14 @@ def execute_option(channel):
         print("Playing Ö1 Song")
         request = WebSongInfo("oe1liveradio")
 
+    elif option == "train":
+        print("Nächster Zug")
+        request = OebbHafasClient()
+
+    elif option == "tagesschau":
+        print("Tagesschau")
+        request = WebTagesschauInfo()
+
     elif option == "temperature_linz":
         print("Displaying temperature for Linz")
         request = WebWeatherInfo("48.3064", "14.2861")
@@ -137,13 +145,7 @@ def execute_option(channel):
         print("Garten Mondkalendar fuer " + formatted_date)
         request = GardenMoonInfo(formatted_date)
 
-    elif option == "train":
-        print("Nächster Zug")
-        request = OebbHafasClient()
 
-    elif option == "tagesschau":
-        print("Tagesschau")
-        request = WebTagesschauInfo()
 
     lcd_u("Loading...", 1)
     try:
@@ -157,7 +159,6 @@ def execute_option(channel):
     setup_gpio()
     reset_display()
     pause_flag = False
-    return
 
 # Function to reset the display
 def reset_display():
@@ -165,9 +166,13 @@ def reset_display():
 
 # Function to setup GPIO event detection
 def setup_gpio():
-    GPIO.add_event_detect(BUTTON_PIN, GPIO.RISING, callback=execute_option, boun                                                                                                                                                                                                                                             cetime=500)
+    GPIO.add_event_detect(BUTTON_PIN, GPIO.RISING, callback=execute_option, bouncetime=500)
 
-
+def get_menu_text():
+    key = get_selected_option()
+    index = list(OPTIONS.keys()).index(key)
+    option = OPTIONS.get(get_selected_option())
+    return str(index+1) + ". " + option
 # Setup GPIO
 GPIO.setmode(GPIO.BOARD)
 
@@ -190,6 +195,5 @@ while True:
         sleep(1)
     else:
     # Display menu based on potentiometer value
-        option = "Menu: " + OPTIONS.get(get_selected_option())
-        lcd_u(option, 1)
+        lcd_u(get_menu_text(), 1)
         sleep(1)
