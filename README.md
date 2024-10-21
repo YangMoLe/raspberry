@@ -24,6 +24,12 @@ No tests
 
 ## Raspberry
 
+### Create a service
+
+```bash
+sudo vi /etc/systemd/system/ <service-name>
+```
+
 ### Service
 
 ```ini
@@ -62,4 +68,14 @@ sudo systemctl enable infomenu
 
 ## Raspberry Wiring
 
-Wiring info follows
+[GPIO and the 40-pin header](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#gpio)
+
+| PIN | Meaning | Connected to |
+| -------- | ------- | ------- |
+| 11 | GPIO 17 | Button |
+| February | $80 | |
+| March | $420 | |
+
+### Analog Digital Converter
+
+### LCD
