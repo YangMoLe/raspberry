@@ -53,6 +53,20 @@ class WebWeatherInfo(WebInfo):
         # Create the output string
         return f"{weather}, {temp_celsius:.1f}°C, Wind: {wind_speed} m/s {wind_dir}"
 
+
+class WebTagesschauInfo(WebInfo):
+    def __init__(self,):
+        super().__init__()
+        self.url = f"https://www.tagesschau.de/api2u/homepage/"
+
+    def parse_content(self, content):
+        news = json.loads(content.decode('utf-8')).get('news')
+        breaking_news = [item for item in news if item.get('breakingNews')]
+        if len(breaking_news) > 0:
+            news = breaking_news
+        titles = ", ".join([news['title'] for news in news])
+        return titles
+
 if __name__ == "__main__":
     # Example usage
     #fm4_info = WebSongInfo("fm4")
@@ -68,8 +82,13 @@ if __name__ == "__main__":
     #oe1_song = oe1_info.parse_content(oe1_content)
     #print("Ö1 Song:", oe1_song)
 
-    linz_weather = WebWeatherInfo("48.3064", "14.2861")
-    linz_content = linz_weather.fetch_content()
-    linz_weather_string = linz_weather.parse_content(linz_content)
-    print(linz_weather_string)
+    #linz_weather = WebWeatherInfo("48.3064", "14.2861")
+    #linz_content = linz_weather.fetch_content()
+    #linz_weather_string = linz_weather.parse_content(linz_content)
+    #print(linz_weather_string)
 
+    tagesschau = WebTagesschauInfo()
+    tagesschau_content = tagesschau.fetch_content()
+    tagesschau_string = tagesschau.parse_content(tagesschau_content)
+
+    print(tagesschau_string)

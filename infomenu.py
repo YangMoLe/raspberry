@@ -1,3 +1,4 @@
+
 import requests
 import Adafruit_ADS1x15
 import datetime
@@ -6,7 +7,7 @@ from rpi_lcd import LCD
 from time import sleep, time
 import RPi.GPIO as GPIO # Import Raspberry Pi GPIO library
 
-from Webinfo import WebSongInfo, WebWeatherInfo
+from Webinfo import WebSongInfo, WebWeatherInfo, WebTagesschauInfo
 
 from GardenMoonInfo import GardenMoonInfo
 from HafasOebb import OebbHafasClient
@@ -19,6 +20,7 @@ OPTIONS = {
     'fm4': 'FM4 Song',
     'oe1liveradio': 'OE1 Song',
     "train": "Nächster zuch",
+    "tagesschau": "Aktuelle Nachrichten",
     "temperature_linz": "Temperatur in Linz",
     "temperature_vienna": "Temperatur in Wien",
     "temperature_bremen": "Temperatur in Bremen",
@@ -32,29 +34,55 @@ stay_duration = 5
 
 # helper
 
+def lcd_u(text: str, line: int):
+    # Create a mapping of German umlauts and special characters to their LCD cod                                                                                                                                                                                                                                             es
+    umlaut_mapping = {
+        'ä': "\xE1",  # ä
+        'ö': "\xEF",  # ö
+        'ü': "\xF5",  # ü
+        'ß': "\xE2",  # ß
+        '°': "\xDF",  # °
+        'µ': "\xE4",  # µ
+        'Ω': "\xF4"   # Ω
+    }
+
+    # Replace umlauts in the text with the corresponding codes
+    for char, code in umlaut_mapping.items():
+        text = text.replace(char, code)
+
+    # Call the original lcd.text function
+    lcd.text(text, line)
+
 def display_scrolling_text(txt, seconds: int = 5):
-    txt = txt.strip() + '. '
-    # Calculate the number of positions the text needs to scroll
-    scroll_length = len(txt) if len(txt) > 32 else 32
-    # If the text is less than 32 characters, pad it with spaces to make it 32 characters long
-    if len(txt) < 33:
-        txt = txt + (32 - len(txt)) * ' '
-        lcd.text(txt, 1)
+    txt = txt.strip() + ' '
+    words = txt.split()  # Split text into individual words
+    # Calculate the number of words the text needs to scroll
+    scroll_length = len(words)
+
+    # If the text is less than or equal to 32 characters, display it without scr                                                                                                                                                                                                                                             olling
+    if len(txt) <= 32:
+        lcd_u(txt, 1)
         sleep(seconds)
         return
-    # Calculate the total number of scrolls needed to show the entire text at least once
-    total_scrolls = max((seconds * 5) + 0.8, scroll_length)
 
+    # Calculate the total number of scrolls needed to show the entire text at le                                                                                                                                                                                                                                             ast once
+    total_scrolls = max((seconds * 2) - 2, scroll_length)
+    print(total_scrolls)
     i = 0
     while i < total_scrolls + 1:
-        lcd.text(txt[:32], 1)
+        # Extract the words to display in the current scroll
+        display_words = ' '.join(words)
+        lcd_u(display_words[:32], 1)
+
+        # Initial delay only for the first scroll
         if i == 0:
-            sleep(0.8)
-        sleep(0.2)
-        txt = txt[1:] + txt[0]
+            sleep(1)
+        else:
+            sleep(0.5)
+
+        # Rotate words for scrolling effect
+        words = words[1:] + words[:1]
         i += 1
-
-
 # Function to read ADC value
 def read_adc(channel):
     value = adc.read_adc(0, gain=GAIN)
@@ -64,7 +92,7 @@ def read_adc(channel):
 def get_selected_option():
     adc_value = read_adc(0)
     max_value = 26404
-    thresholds = [max_value / len(OPTIONS) * i for i in range(1, 5)]
+    thresholds = [max_value / len(OPTIONS) * i for i in range(1, len(OPTIONS))]
     stations = list(OPTIONS.keys())
     for i, threshold in enumerate(thresholds):
         if adc_value < threshold:
@@ -113,7 +141,11 @@ def execute_option(channel):
         print("Nächster Zug")
         request = OebbHafasClient()
 
-    lcd.text("Loading...", 1)
+    elif option == "tagesschau":
+        print("Tagesschau")
+        request = WebTagesschauInfo()
+
+    lcd_u("Loading...", 1)
     try:
         content = request.fetch_content()
         text = request.parse_content(content)
@@ -121,11 +153,11 @@ def execute_option(channel):
         text = "Error fetching text"
         print(f"Error: {e}")
 
-    print(text)
     display_scrolling_text(text, stay_duration)
     setup_gpio()
     reset_display()
     pause_flag = False
+    return
 
 # Function to reset the display
 def reset_display():
@@ -133,7 +165,7 @@ def reset_display():
 
 # Function to setup GPIO event detection
 def setup_gpio():
-    GPIO.add_event_detect(BUTTON_PIN, GPIO.RISING, callback=execute_option, bouncetime=500)
+    GPIO.add_event_detect(BUTTON_PIN, GPIO.RISING, callback=execute_option, boun                                                                                                                                                                                                                                             cetime=500)
 
 
 # Setup GPIO
@@ -155,9 +187,9 @@ print("Initializing done")
 
 while True:
     if pause_flag:
-        sleep(0.1)
+        sleep(1)
     else:
     # Display menu based on potentiometer value
         option = "Menu: " + OPTIONS.get(get_selected_option())
-        lcd.text(option, 1)
+        lcd_u(option, 1)
         sleep(1)
