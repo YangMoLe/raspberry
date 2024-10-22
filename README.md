@@ -1,5 +1,9 @@
 # Infomenu
 
+## Ideas
+
+- Welcher Tatort kommt als nächstes
+
 ## Development
 
 ### Installation

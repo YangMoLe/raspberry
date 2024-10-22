@@ -67,6 +67,16 @@ class WebTagesschauInfo(WebInfo):
         titles = ", ".join([news['title'] for news in news])
         return titles
 
+class WebSchneehoehenInfo(WebInfo):
+    def __init__(self,location:str):
+        super().__init__()
+        self.url = f"https://www.schneehoehen.de/skigebiete/schneebericht/{location}"
+
+    def parse_content(self, content):
+        soup = BeautifulSoup(content, 'html.parser')
+        schneehoehe = soup.find("li", class_="list-group-item").find("span").text
+        return schneehoehe
+
 if __name__ == "__main__":
     # Example usage
     #fm4_info = WebSongInfo("fm4")
@@ -87,8 +97,11 @@ if __name__ == "__main__":
     #linz_weather_string = linz_weather.parse_content(linz_content)
     #print(linz_weather_string)
 
-    tagesschau = WebTagesschauInfo()
-    tagesschau_content = tagesschau.fetch_content()
-    tagesschau_string = tagesschau.parse_content(tagesschau_content)
+    #tagesschau = WebTagesschauInfo()
+    #tagesschau_content = tagesschau.fetch_content()
+    #tagesschau_string = tagesschau.parse_content(tagesschau_content)
 
-    print(tagesschau_string)
+    schnee = WebSchneehoehenInfo("oetztal-arena-soelden")
+    schnee_content= schnee.fetch_content()
+    schnee_string = schnee.parse_content(schnee_content)
+    print(schnee_string)

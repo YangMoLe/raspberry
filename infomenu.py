@@ -7,7 +7,7 @@ from rpi_lcd import LCD
 from time import sleep, time
 import RPi.GPIO as GPIO # Import Raspberry Pi GPIO library
 
-from Webinfo import WebSongInfo, WebWeatherInfo, WebTagesschauInfo
+from Webinfo import WebSongInfo, WebWeatherInfo, WebTagesschauInfo, WebSchneehoehenInfo
 
 from GardenMoonInfo import GardenMoonInfo
 from HafasOebb import OebbHafasClient
@@ -21,6 +21,7 @@ OPTIONS = {
     'oe1liveradio': 'ö1 Song',
     "train": "Nächster Zug",
     "tagesschau": "Aktuelle Nachrichten",
+    "schneehoehe_soelden": "Schneehöhe in Sölden",
     "temperature_linz": "Temperatur in Linz",
     "temperature_vienna": "Temperatur in Wien",
     "temperature_bremen": "Temperatur in Bremen",
@@ -122,6 +123,10 @@ def execute_option(channel):
     elif option == "tagesschau":
         print("Tagesschau")
         request = WebTagesschauInfo()
+
+    elif option == "schneehoehe_soelden":
+        print("Schneehöhe in Sölden")
+        request = WebSchneehoehenInfo("oetztal-arena-soelden")
 
     elif option == "temperature_linz":
         print("Displaying temperature for Linz")
