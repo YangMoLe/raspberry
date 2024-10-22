@@ -74,7 +74,29 @@ class WebSchneehoehenInfo(WebInfo):
 
     def parse_content(self, content):
         soup = BeautifulSoup(content, 'html.parser')
-        schneehoehe = soup.find("li", class_="list-group-item").find("span").text
+        li_elements = soup.find_all("li", class_="list-group-item") # .find("span").text
+        # Create a dictionary to store the desired information
+        desired_info = {
+            "Schneehöhe (Bergstation)": "-",
+            "Neuschneemenge": "-",
+            "Schneezustand": "-"
+        }
+
+        # Loop through each <li> element to find the ones with the desired text
+        for li in li_elements:
+            # Extract the text content of the <li> and check for each target keyword
+            li_text = li.get_text(strip=True)
+
+            for key in desired_info.keys():
+                if key in li_text:
+                    span_element = li.find('span')
+                    if span_element:
+                        desired_info[key] = span_element.get_text(strip=True)
+
+        # Create a formatted string dynamically from the dictionary
+        schneehoehe = ""
+        for key, value in desired_info.items():
+            schneehoehe += f"{key}: {value}."
         return schneehoehe
 
 if __name__ == "__main__":
